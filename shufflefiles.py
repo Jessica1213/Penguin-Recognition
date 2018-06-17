@@ -16,13 +16,15 @@ falsefiles = []
 
 for file in os.listdir(truedir):
     try:
-        truefiles.append(file)
+        if file.endswith(".jpg"):
+            truefiles.append(file)
     except Exception as e:        
         raise e
         
 for file in os.listdir(falsedir):
     try:
-        falsefiles.append(file)
+        if file.endswith(".jpg"):
+            falsefiles.append(file)
     except Exception as e:
         raise e
 

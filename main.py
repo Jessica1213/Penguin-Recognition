@@ -21,6 +21,7 @@ from keras.layers.convolutional import *
 import itertools
 import matplotlib.pyplot as plt
 from PIL import Image
+import time
 
 #%%        
 def loadfilelist(filename):
@@ -33,23 +34,39 @@ def loadfilelist(filename):
 #%%
 def loadImg(filepath, filenames):
     img = []
-    count = 0
     for name in filenames:
-        im = Image.open(filepath+name)
-        width, height = im.size
-        size = height
+        image = Image.open(filepath+name)
         
-        left = size/4
-        top = 0
-        right = left+size
-        bottom = size
-        crop = im.crop((left, top, right, bottom))
+        try:
+            exif=dict(image._getexif().items())
+            orientations = 274   
+            if exif[orientations] == 3 : 
+                image=image.rotate(180, expand=True)
+            elif exif[orientations] == 6 : 
+                image=image.rotate(270, expand=True)
+            elif exif[orientations] == 8 : 
+                image=image.rotate(90, expand=True)
+        except:
+            pass
+        width, height = image.size
+        if width>height:
+            size = height
+            left = size/4
+            top = 0
+            right = left+size
+            bottom = size
+        else:
+            size = width
+            left = 0
+            top = size/4
+            right = size
+            bottom = top+size
+        
+        
+        crop = image.crop((left, top, right, bottom))
         size = (512, 512)
         crop = crop.resize(size, Image.ANTIALIAS)
         img.append(crop)
-        count += 1
-        if count%100==0:
-            print(count)
     return img
 #%%            
 if __name__ == '__main__':
@@ -57,12 +74,14 @@ if __name__ == '__main__':
     trueTrainFiles = loadfilelist('truetrain.txt')
     trueTestFiles = loadfilelist('truetest.txt')
     falseTrainFiles = loadfilelist('falsetrain.txt')
-    falseTextFiles = loadfilelist('falsetest.txt')
-
+    falseTestFiles = loadfilelist('falsetest.txt')
+    start = time.clock()
     trueTrainImg = loadImg(data_path+'TRUE/', trueTrainFiles)
-    #trueTestImg = loadImg(data_path+'TRUE/', trueTestFiles)
-    #%%
-    trueTrainImg[387].show()
+    trueTestImg = loadImg(data_path+'TRUE/', trueTestFiles)
+    falseTrainImg = loadImg(data_path+'FALSE/', falseTrainFiles)
+    falseTestImg = loadImg(data_path+'FALSE/', falseTestFiles)
+    print(time.clock()-start)
+    
 #%%    
    
 #train_path = './train'
