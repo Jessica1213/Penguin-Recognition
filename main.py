@@ -17,20 +17,64 @@ from keras.metrics import categorical_crossentropy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import *
-from keras.metrics import load_model
+#from keras.metrics import load_model
 import itertools
 import matplotlib.pyplot as plt
 from PIL import Image
 
-train_path = './train'
-valid_path = './valid'
-test_path = './test'
+#%%        
+def loadfilelist(filename):
+    file = []
+    with open(filename) as f:
+        file = f.readlines()
+        k = [x.strip() for x in file]
+    f.close()
+    return k
+#%%
+def loadImg(filepath, filenames):
+    img = []
+    count = 0
+    for name in filenames:
+        im = Image.open(filepath+name)
+        width, height = im.size
+        size = height
+        
+        left = size/4
+        top = 0
+        right = left+size
+        bottom = size
+        crop = im.crop((left, top, right, bottom))
+        size = (512, 512)
+        crop = crop.resize(size, Image.ANTIALIAS)
+        img.append(crop)
+        count += 1
+        if count%100==0:
+            print(count)
+    return img
+#%%            
+if __name__ == '__main__':
+    data_path = '../CNNdataset/'
+    trueTrainFiles = loadfilelist('truetrain.txt')
+    trueTestFiles = loadfilelist('truetest.txt')
+    falseTrainFiles = loadfilelist('falsetrain.txt')
+    falseTextFiles = loadfilelist('falsetest.txt')
+
+    trueTrainImg = loadImg(data_path+'TRUE/', trueTrainFiles)
+    #trueTestImg = loadImg(data_path+'TRUE/', trueTestFiles)
+    #%%
+    trueTrainImg[387].show()
+#%%    
+   
+#train_path = './train'
+#valid_path = './valid'
+#test_path = './test'
+
 
 #ImageDataGenerator顧名思義就是用來產生圖片資料的：
 #用以生成一個批次的圖像數據。訓練時該函數會無限生成數據，直到達到規定的epoch次數為止。
-train_batches = ImageDataGenerator().flow_from_directory(train_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=10)
-valid_batches = ImageDataGenerator().flow_from_directory(valid_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=4)
-test_batches = ImageDataGenerator().flow_from_directory(test_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=10)
+#train_batches = ImageDataGenerator().flow_from_directory(train_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=10)
+#valid_batches = ImageDataGenerator().flow_from_directory(valid_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=4)
+#test_batches = ImageDataGenerator().flow_from_directory(test_path, target_size=(224,224), classes=['dogs', 'cats'], batch_size=10)
 
 #flow_from_directory（）：
 #以文件夾路徑為參數，生成經過數據提升/歸一化後的數據，在一個無限循環中無限制生產批次資料。
@@ -43,23 +87,23 @@ test_batches = ImageDataGenerator().flow_from_directory(test_path, target_size=(
 #Found 40 images belonging to 2 classes.
 #Found 10 images belonging to 2 classes.
 #Found 10 images belonging to 2 classes.
-print(train_batches.image_shape)
+#print(train_batches.image_shape)
 # (224, 224, 3)
 
-vgg16_model = keras.applications.vgg16.VGG16()
-model = Sequential()
-model.summary()
+#vgg16_model = keras.applications.vgg16.VGG16()
+#model = Sequential()
+#model.summary()
 
-for layer in vgg16_model.layers:
-    model.add(layer)
-model.summary()
+#for layer in vgg16_model.layers:
+#    model.add(layer)
+#model.summary()
 
 #將頂層predictions拿掉，基本上遷移式學習不只是刪掉原本輸出，不過因為資料類型的關係這裡只把最後一層刪掉重新訓練。
-model.layers.pop()
-for layer in model.layers:
-    layer.trainable = False
+#model.layers.pop()
+#for layer in model.layers:
+#    layer.trainable = False
     
-model.add(Dense(2, activation='softmax'))
-model.compile(Adam(lr=.00002122), loss='categorical_crossentropy', metrics=['accuracy'])
-model.fit_generator(train_batches, steps_per_epoch=10, validation_data=valid_batches, validation_steps=4, epochs=10, verbose=2)
-model.save("cat-dog-model-base-VGG16.h5")
+#model.add(Dense(2, activation='softmax'))
+#model.compile(Adam(lr=.00002122), loss='categorical_crossentropy', metrics=['accuracy'])
+#model.fit_generator(train_batches, steps_per_epoch=10, validation_data=valid_batches, validation_steps=4, epochs=10, verbose=2)
+#model.save("cat-dog-model-base-VGG16.h5")
